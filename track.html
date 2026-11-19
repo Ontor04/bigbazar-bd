@@ -1,0 +1,23 @@
+{% extends 'shop/base.html' %}
+{% from '_icons.html' import ic %}
+{% block title %}{{ L('অর্ডার ট্র্যাক', 'Track order') }} – {{ S.site_name }}{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <h1 class="page-title">{{ ic('truck', 28) }} {{ L('অর্ডার ট্র্যাক করুন', 'Track your order') }}</h1>
+  <form method="post" class="panel">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label class="field"><span>{{ L('অর্ডার নম্বর', 'Order number') }}</span><input class="input" name="number" value="{{ number }}" placeholder="BBD-YYMMDD-XXXX" required maxlength="30"></label>
+    <label class="field"><span>{{ L('অর্ডারে দেওয়া মোবাইল নম্বর', 'Mobile number used for the order') }}</span><input class="input" name="phone" inputmode="tel" placeholder="01XXXXXXXXX" required></label>
+    {% if error %}<div class="flash flash-error">{{ error }}</div>{% endif %}
+    <button class="btn btn-primary" type="submit">{{ L('ট্র্যাক করুন', 'Track') }}</button>
+  </form>
+  {% if order %}
+  <section class="panel">
+    <h2>{{ order.number }} <span class="status st-{{ order.status }}">{{ STATUS_BN[order.status] if lang == 'bn' else order.status|capitalize }}</span></h2>
+    <ol class="timeline">{% for h in history|reverse %}<li><b>{{ STATUS_BN[h.status] if lang == 'bn' else h.status|capitalize }}</b><small>{{ fdate(h.created_at) }}</small></li>{% endfor %}</ol>
+    {% for i in items %}<div class="sum-row"><span>{{ i.name }} × {{ bn(i.qty) }}</span><b>{{ money(i.price * i.qty) }}</b></div>{% endfor %}
+    <div class="sum-row total"><span>{{ L('মোট', 'Total') }}</span><b>{{ money(order.total) }}</b></div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

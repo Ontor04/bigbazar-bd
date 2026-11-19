@@ -1,0 +1,24 @@
+{% extends 'admin/base.html' %}
+{% from '_icons.html' import ic %}
+{% from 'admin/_m.html' import pager with context %}
+{% block title %}Customers{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h2>{{ total }} customer{{ '' if total == 1 else 's' }}</h2><p>Customers are added automatically when they place an order.</p></div>
+  <a class="btn btn-ghost" href="{{ url_for('admin.export_csv', type='customers') }}">{{ ic('download', 16) }} Export CSV</a>
+</div>
+<form class="filters" method="get">
+  <label class="field grow"><span>Search</span><input class="input" type="search" name="q" value="{{ text }}" placeholder="Name, phone or address…" maxlength="60"></label>
+  <button class="btn btn-dark" type="submit">{{ ic('search', 16) }} Search</button>
+  {% if text %}<a class="btn btn-ghost" href="{{ url_for('admin.customers') }}">Clear</a>{% endif %}
+</form>
+{% if rows %}
+<div class="table-wrap"><table>
+  <thead><tr><th>Customer</th><th>Phone</th><th>Address</th><th class="right">Orders</th><th class="right">Total spent</th><th>Last order</th><th></th></tr></thead>
+  <tbody>{% for c in rows %}
+  <tr><td><b>{{ c.name }}</b></td><td><a href="tel:{{ c.phone }}">{{ c.phone }}</a></td><td style="max-width:280px">{{ c.address }}</td><td class="right">{{ c.orders }}</td><td class="right nowrap">{{ money(c.spent) }}</td><td class="nowrap">{{ fdate(c.last_order, False) if c.last_order else '—' }}</td>
+  <td class="right"><a class="btn btn-ghost btn-sm" href="{{ url_for('admin.customer_detail', cid=c.id) }}">History</a></td></tr>
+  {% endfor %}</tbody></table></div>
+{{ pager(page, pages, qs) }}
+{% else %}<div class="card empty">No customers yet.</div>{% endif %}
+{% endblock %}

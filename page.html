@@ -1,0 +1,15 @@
+{% extends 'shop/base.html' %}
+{% from '_icons.html' import ic %}
+{% block title %}{{ title }} – {{ S.site_name }}{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <div class="crumbs"><a href="{{ url_for('home') }}">{{ L('হোম', 'Home') }}</a> / <span>{{ title }}</span></div>
+  <article class="panel prose"><h1>{{ title }}</h1>{{ body|rich }}</article>
+  {% if kind == 'about' %}
+  <div class="features features-sm">
+    <div>{{ ic('shield', 26) }}<b>{{ L('মানসম্মত পণ্য', 'Quality products') }}</b></div>
+    <div>{{ ic('tag', 26) }}<b>{{ L('সাশ্রয়ী দাম', 'Affordable prices') }}</b></div>
+    <div>{{ ic('users', 26) }}<b>{{ L('গ্রাহকের সন্তুষ্টি', 'Customer satisfaction') }}</b></div>
+  </div>{% endif %}
+</div>
+{% endblock %}

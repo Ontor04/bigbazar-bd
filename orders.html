@@ -1,0 +1,44 @@
+{% extends 'admin/base.html' %}
+{% from '_icons.html' import ic %}
+{% from 'admin/_m.html' import pager, csrf, status_pill with context %}
+{% block title %}Orders{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h2>{{ total }} order{{ '' if total == 1 else 's' }}</h2><p>Confirm orders, update their status and keep track of deliveries.</p></div>
+  <a class="btn btn-ghost" href="{{ url_for('admin.export_csv', type='orders', **{'from': f['from'], 'to': f.to}) }}">{{ ic('download', 16) }} Export CSV</a>
+</div>
+<nav class="tabs" aria-label="Order status">
+  <a href="{{ url_for('admin.orders') }}" class="{{ 'on' if not f.status }}">All <b>{{ all_count }}</b></a>
+  {% for s in STATUSES %}<a href="{{ url_for('admin.orders', status=s) }}" class="{{ 'on' if f.status == s }}">{{ s|capitalize }} <b>{{ counts.get(s, 0) }}</b></a>{% endfor %}
+</nav>
+<form class="filters" method="get">
+  {% if f.status %}<input type="hidden" name="status" value="{{ f.status }}">{% endif %}
+  <label class="field grow"><span>Search</span><input class="input" type="search" name="q" value="{{ f.q }}" placeholder="Order no., name or phone…" maxlength="60"></label>
+  <label class="field"><span>From</span><input class="input" type="date" name="from" value="{{ f['from'] }}"></label>
+  <label class="field"><span>To</span><input class="input" type="date" name="to" value="{{ f.to }}"></label>
+  <label class="field"><span>Area</span><select name="area"><option value="">All</option><option value="dhaka" {{ 'selected' if f.area == 'dhaka' }}>Dhaka</option><option value="outside" {{ 'selected' if f.area == 'outside' }}>Outside Dhaka</option></select></label>
+  <button class="btn btn-dark" type="submit">{{ ic('search', 16) }} Filter</button>
+  {% if f.q or f['from'] or f.to or f.area %}<a class="btn btn-ghost" href="{{ url_for('admin.orders', status=f.status or None) }}">Clear</a>{% endif %}
+</form>
+{% if rows %}
+<div class="table-wrap"><table>
+  <thead><tr><th>Order</th><th>Customer</th><th>Area</th><th>Items</th><th class="right">Total</th><th>Status</th><th></th></tr></thead>
+  <tbody>
+  {% for o in rows %}
+  <tr>
+    <td><a href="{{ url_for('admin.order_detail', oid=o.id) }}"><b>{{ o.number }}</b></a><small>{{ fdate(o.created_at) }}</small></td>
+    <td><b>{{ o.name }}</b><small><a href="tel:{{ o.phone }}">{{ o.phone }}</a></small></td>
+    <td>{{ 'Dhaka' if o.area == 'dhaka' else 'Outside' }}</td>
+    <td>{{ o['items'] }}</td>
+    <td class="right nowrap"><b>{{ money(o.total) }}</b><small>COD</small></td>
+    <td>
+      <form method="post" action="{{ url_for('admin.order_status', oid=o.id) }}" class="inline">{{ csrf() }}<input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+        <select name="status" data-autosubmit aria-label="Status of {{ o.number }}" style="padding:6px 8px;width:auto">{% for s in STATUSES %}<option value="{{ s }}" {{ 'selected' if o.status == s }}>{{ s|capitalize }}</option>{% endfor %}</select></form>
+    </td>
+    <td class="right"><a class="btn btn-ghost btn-sm" href="{{ url_for('admin.order_detail', oid=o.id) }}">{{ ic('eye', 15) }} View</a></td>
+  </tr>
+  {% endfor %}
+  </tbody></table></div>
+{{ pager(page, pages, qs) }}
+{% else %}<div class="card empty">No orders match these filters.</div>{% endif %}
+{% endblock %}

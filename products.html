@@ -1,0 +1,47 @@
+{% extends 'admin/base.html' %}
+{% from '_icons.html' import ic %}
+{% from 'admin/_m.html' import pager, csrf with context %}
+{% block title %}Products{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h2>{{ total }} product{{ '' if total == 1 else 's' }}</h2><p>Add, edit prices, update stock and change images – changes go live instantly.</p></div>
+  <div class="gap"><a class="btn btn-ghost" href="{{ url_for('admin.export_csv', type='products') }}">{{ ic('download', 16) }} Export CSV</a>
+  <a class="btn btn-primary" href="{{ url_for('admin.product_form') }}">{{ ic('plus', 16) }} Add product</a></div>
+</div>
+<form class="filters" method="get">
+  <label class="field grow"><span>Search</span><input class="input" type="search" name="q" value="{{ text }}" placeholder="Name or brand…" maxlength="80"></label>
+  <label class="field"><span>Category</span><select name="cat" data-autosubmit><option value="">All categories</option>{% for c in cats %}<option value="{{ c.id }}" {{ 'selected' if cat == c.id|string }}>{{ c.name_en }}</option>{% endfor %}</select></label>
+  <label class="field"><span>Stock</span><select name="stock" data-autosubmit>
+    <option value="">All</option><option value="in" {{ 'selected' if stock == 'in' }}>In stock</option><option value="low" {{ 'selected' if stock == 'low' }}>Low (1–5)</option><option value="out" {{ 'selected' if stock == 'out' }}>Out of stock</option></select></label>
+  <button class="btn btn-dark" type="submit">{{ ic('search', 16) }} Filter</button>
+  {% if text or cat or stock %}<a class="btn btn-ghost" href="{{ url_for('admin.products') }}">Clear</a>{% endif %}
+</form>
+
+{% if rows %}
+<div class="table-wrap"><table>
+  <thead><tr><th>Product</th><th>Category</th><th class="right">Price</th><th>Stock</th><th>Status</th><th></th></tr></thead>
+  <tbody>
+  {% for p in rows %}
+  <tr>
+    <td><div class="gap" style="flex-wrap:nowrap"><img class="thumb" src="{{ img_url(p.image) }}" alt="" loading="lazy"><div><b>{{ p.name_en or p.name_bn }}</b>{% if p.name_en and p.name_bn %}<small>{{ p.name_bn }}</small>{% endif %}{% if p.brand %}<small>{{ p.brand }}</small>{% endif %}</div></div></td>
+    <td>{{ p.cat_en or '—' }}</td>
+    <td class="right nowrap"><b>{{ money(p.price) }}</b>{% if p.old_price %}<small><s>{{ money(p.old_price) }}</s></small>{% endif %}</td>
+    <td>
+      <form class="stock-form" method="post" action="{{ url_for('admin.product_stock', pid=p.id) }}">{{ csrf() }}<input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+        <input class="input" type="number" name="stock" value="{{ p.stock }}" min="0" max="1000000" aria-label="Stock for {{ p.name_en or p.name_bn }}"><button class="btn btn-ghost btn-sm" type="submit">Save</button></form>
+    </td>
+    <td>
+      <form method="post" action="{{ url_for('admin.product_stock', pid=p.id) }}" class="inline">{{ csrf() }}<input type="hidden" name="action" value="toggle"><input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+        <button class="btn btn-sm {{ 'btn-ok' if p.available and p.stock > 0 else 'btn-danger' }}" type="submit" title="Click to mark as {{ 'Out of Stock' if p.available else 'Available' }}">
+          {% if not p.available %}Out of stock (hidden){% elif p.stock <= 0 %}Out of stock{% else %}Available{% endif %}</button></form>
+    </td>
+    <td><div class="row-actions">
+      <a class="btn btn-ghost btn-sm" href="{{ url_for('admin.product_form', pid=p.id) }}">{{ ic('edit', 15) }} Edit</a>
+      <form method="post" action="{{ url_for('admin.product_delete', pid=p.id) }}" data-confirm="Delete this product permanently? Past orders keep their details.">{{ csrf() }}<button class="btn btn-danger btn-sm" type="submit" aria-label="Delete {{ p.name_en or p.name_bn }}">{{ ic('trash', 15) }}</button></form>
+    </div></td>
+  </tr>
+  {% endfor %}
+  </tbody></table></div>
+{{ pager(page, pages, qs) }}
+{% else %}<div class="card empty">No products found. <a href="{{ url_for('admin.product_form') }}"><b>Add your first product</b></a>.</div>{% endif %}
+{% endblock %}

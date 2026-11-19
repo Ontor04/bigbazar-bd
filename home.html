@@ -1,0 +1,99 @@
+{% extends 'shop/base.html' %}
+{% from '_icons.html' import ic %}
+{% from 'shop/_card.html' import card, stars with context %}
+{% block content %}
+
+<section class="wrap hero" aria-label="{{ L('অফার', 'Offers') }}">
+  {% set heroes_list = heroes if heroes else [None] %}
+  <div class="hero-track" data-hero>
+    {% for b in heroes_list %}
+    <div class="hero-slide theme-{{ b.theme if b else 'orange' }} {{ 'is-active' if loop.first else '' }}">
+      <div class="hero-copy">
+        <span class="pill">{{ L('বিগ বাজার বিডি', 'BIG BAZAR BD') }}</span>
+        <h1>{{ (pick(b, 'title') if b else '') or L('সেরা দামে সেরা পণ্য', 'Best Products at Best Prices') }}</h1>
+        <p>{{ (pick(b, 'sub') if b else '') or S['announcement_' + lang] }}</p>
+        <a class="btn btn-light" href="{{ (b.link if b else url_for('shop')) }}">{{ (pick(b, 'button') if b else '') or L('এখনই কিনুন', 'Shop Now') }} →</a>
+      </div>
+      <div class="hero-art">
+        {% if b and b.image %}<img src="{{ img_url(b.image) }}" alt="" loading="{{ 'eager' if loop.first else 'lazy' }}">
+        {% else %}
+          {% set pics = (featured[(loop.index0 * 2) % (featured|length or 1):][:3] if featured else []) %}
+          {% for p in pics %}<a class="hero-prod hp{{ loop.index }}" href="{{ url_for('product', pid=p.id) }}" tabindex="-1"><img src="{{ img_url(p.image) }}" alt="{{ pick(p, 'name') }}" loading="lazy"></a>{% endfor %}
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+    {% if heroes_list|length > 1 %}<div class="dots" data-dots>{% for b in heroes_list %}<button type="button" aria-label="{{ loop.index }}" class="{{ 'on' if loop.first else '' }}"></button>{% endfor %}</div>{% endif %}
+  </div>
+</section>
+
+<section class="wrap features">
+  <div>{{ ic('truck', 26) }}<b>{{ L('ক্যাশ অন ডেলিভারি', 'Cash on Delivery') }}</b><span>{{ L('পণ্য হাতে পেয়ে টাকা দিন', 'Pay when you receive') }}</span></div>
+  <div>{{ ic('clock', 26) }}<b>{{ S['delivery_time_' + lang] }}</b><span>{{ L('দ্রুত ডেলিভারি', 'Fast delivery') }}</span></div>
+  <div>{{ ic('return', 26) }}<b>{{ L('৩ দিনে রিটার্ন', '3-day returns') }}</b><span>{{ L('শর্ত প্রযোজ্য', 'Conditions apply') }}</span></div>
+  <div>{{ ic('chat', 26) }}<b>{{ L('হোয়াটসঅ্যাপ সাপোর্ট', 'WhatsApp support') }}</b><span>{{ bn(S.whatsapp) }}</span></div>
+</section>
+
+{% if cats %}
+<section class="wrap section">
+  <div class="section-head"><h2>{{ L('ক্যাটাগরি অনুযায়ী কিনুন', 'Shop by Category') }}</h2></div>
+  <div class="cat-grid">
+    {% for c in cats %}<a class="cat-tile" href="{{ url_for('shop', slug=c.slug) }}"><span class="cat-img"><img src="{{ img_url(c.image) }}" alt="" loading="lazy" width="120" height="120"></span><b>{{ pick(c, 'name') }}</b></a>{% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if deals %}
+<section class="wrap section">
+  <div class="section-head"><h2>🔥 {{ L('আজকের অফার', "Today's Deals") }}</h2><a href="{{ url_for('shop', sort='discount') }}">{{ L('সব দেখুন', 'View all') }} →</a></div>
+  <div class="grid">{% for p in deals %}{{ card(p) }}{% endfor %}</div>
+</section>
+{% endif %}
+
+{% if promos %}
+<section class="wrap promo-grid">
+  {% for b in promos %}
+  <a class="promo theme-{{ b.theme }}" href="{{ b.link }}" {% if b.image %}style="background-image:linear-gradient(90deg,rgba(0,0,0,.45),rgba(0,0,0,0)),url('{{ img_url(b.image) }}')"{% endif %}>
+    <small>{{ pick(b, 'sub') }}</small><h3>{{ pick(b, 'title') }}</h3><span class="btn btn-light btn-sm">{{ pick(b, 'button') or L('দেখুন', 'Explore') }} →</span>
+  </a>
+  {% endfor %}
+</section>
+{% endif %}
+
+{% if featured %}
+<section class="wrap section">
+  <div class="section-head"><h2>⭐ {{ L('বিশেষ পণ্য', 'Featured Products') }}</h2><a href="{{ url_for('shop') }}">{{ L('সব দেখুন', 'View all') }} →</a></div>
+  <div class="grid">{% for p in featured %}{{ card(p) }}{% endfor %}</div>
+</section>
+{% endif %}
+
+{% if trending %}
+<section class="wrap section">
+  <div class="section-head"><h2>📈 {{ L('ট্রেন্ডিং পণ্য', 'Trending Now') }}</h2><a href="{{ url_for('shop', cat='trending') }}">{{ L('সব দেখুন', 'View all') }} →</a></div>
+  <div class="grid">{% for p in trending %}{{ card(p) }}{% endfor %}</div>
+</section>
+{% endif %}
+
+{% if newest %}
+<section class="wrap section">
+  <div class="section-head"><h2>🆕 {{ L('নতুন পণ্য', 'New Arrivals') }}</h2><a href="{{ url_for('shop') }}">{{ L('সব দেখুন', 'View all') }} →</a></div>
+  <div class="grid">{% for p in newest %}{{ card(p) }}{% endfor %}</div>
+</section>
+{% endif %}
+
+{% if reviews %}
+<section class="wrap section">
+  <div class="section-head"><h2>💬 {{ L('গ্রাহকদের মতামত', 'Customer Reviews') }}</h2></div>
+  <div class="review-grid">
+    {% for r in reviews %}<figure class="review">{{ stars(r.rating) }}<blockquote>{{ r.comment or '—' }}</blockquote><figcaption><b>{{ r.name }}</b> · <a href="{{ url_for('product', pid=r.product_id) }}">{{ r.name_bn if lang == 'bn' and r.name_bn else r.name_en }}</a></figcaption></figure>{% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section class="wrap section">
+  <div class="cta">
+    <div><h2>{{ L('অর্ডার নিয়ে সাহায্য লাগবে?', 'Need help with an order?') }}</h2><p>{{ L('হোয়াটসঅ্যাপে মেসেজ দিন, আমরা দ্রুত উত্তর দেব।', 'Message us on WhatsApp and we will reply quickly.') }}</p></div>
+    <a class="btn btn-light" href="{{ wa_link(L('হ্যালো, আমি অর্ডার নিয়ে সাহায্য চাই।', 'Hello, I need help with an order.')) }}" target="_blank" rel="noopener noreferrer">{{ ic('chat', 18) }} {{ L('হোয়াটসঅ্যাপে মেসেজ করুন', 'Chat on WhatsApp') }}</a>
+  </div>
+</section>
+{% endblock %}

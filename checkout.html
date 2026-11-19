@@ -1,0 +1,40 @@
+{% extends 'shop/base.html' %}
+{% from '_icons.html' import ic %}
+{% block title %}{{ L('চেকআউট', 'Checkout') }} – {{ S.site_name }}{% endblock %}
+{% block content %}
+<div class="wrap">
+  <h1 class="page-title">{{ ic('lock', 26) }} {{ L('চেকআউট', 'Checkout') }}</h1>
+  {% if errors.form %}<div class="flash flash-error">{{ errors.form }}</div>{% endif %}
+  <form method="post" class="checkout-layout" novalidate data-checkout data-sub="{{ subtotal }}" data-dhaka="{{ d_dhaka }}" data-out="{{ d_out }}" data-lang="{{ lang }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <section class="panel">
+      <h2>{{ L('ডেলিভারির তথ্য', 'Delivery details') }}</h2>
+      <label class="field"><span>{{ L('আপনার নাম', 'Full name') }} *</span><input class="input {{ 'bad' if errors.name }}" name="name" value="{{ form.name }}" required maxlength="80" autocomplete="name">{% if errors.name %}<em>{{ errors.name }}</em>{% endif %}</label>
+      <label class="field"><span>{{ L('মোবাইল নম্বর', 'Mobile number') }} *</span><input class="input {{ 'bad' if errors.phone }}" name="phone" value="{{ form.phone }}" inputmode="tel" required placeholder="01XXXXXXXXX" autocomplete="tel">{% if errors.phone %}<em>{{ errors.phone }}</em>{% endif %}</label>
+      <label class="field"><span>{{ L('সম্পূর্ণ ঠিকানা', 'Full address') }} *</span><textarea class="input {{ 'bad' if errors.address }}" name="address" rows="3" required maxlength="300" placeholder="{{ L('বাড়ি/রোড, এলাকা, থানা, জেলা', 'House/Road, Area, Thana, District') }}" autocomplete="street-address">{{ form.address }}</textarea>{% if errors.address %}<em>{{ errors.address }}</em>{% endif %}</label>
+      <div class="field"><span>{{ L('ডেলিভারি এলাকা', 'Delivery area') }} *</span>
+        <div class="radio-cards">
+          <label class="radio-card"><input type="radio" name="area" value="dhaka" {{ 'checked' if form.area == 'dhaka' }}><b>{{ L('ঢাকার ভেতরে', 'Inside Dhaka') }}</b><small>{{ money(d_dhaka) if d_dhaka else L('ফ্রি', 'Free') }}</small></label>
+          <label class="radio-card"><input type="radio" name="area" value="outside" {{ 'checked' if form.area == 'outside' }}><b>{{ L('ঢাকার বাইরে', 'Outside Dhaka') }}</b><small>{{ money(d_out) if d_out else L('ফ্রি', 'Free') }}</small></label>
+        </div></div>
+      <label class="field"><span>{{ L('বিশেষ নির্দেশনা (ঐচ্ছিক)', 'Order note (optional)') }}</span><input class="input" name="note" value="{{ form.note }}" maxlength="300" placeholder="{{ L('যেমন: সাইজ L, রং কালো', 'e.g. Size L, black colour') }}"></label>
+      <h2>{{ L('পেমেন্ট পদ্ধতি', 'Payment method') }}</h2>
+      <div class="radio-cards">
+        <label class="radio-card is-on"><input type="radio" name="pay" value="cod" checked><b>{{ ic('truck', 18) }} {{ L('ক্যাশ অন ডেলিভারি', 'Cash on Delivery') }}</b><small>{{ L('পণ্য হাতে পেয়ে টাকা দিন', 'Pay when you receive') }}</small></label>
+        <div class="radio-card is-disabled"><b>bKash / Nagad</b><small>{{ L('শীঘ্রই আসছে', 'Coming soon') }}</small></div>
+      </div>
+    </section>
+    <aside class="summary">
+      <h3>{{ L('আপনার অর্ডার', 'Your order') }}</h3>
+      {% for it in items %}<div class="mini-row"><img src="{{ img_url(it.p.image) }}" alt="" width="52" height="52"><div><b>{{ pick(it.p, 'name') }}</b><small class="muted">{{ bn(it.qty) }} × {{ money(it.p.sale) }}</small></div><span>{{ money(it.line) }}</span></div>{% endfor %}
+      <div class="sum-row"><span>{{ L('সাবটোটাল', 'Subtotal') }}</span><b>{{ money(subtotal) }}</b></div>
+      <div class="sum-row"><span>{{ L('ডেলিভারি চার্জ', 'Delivery') }}</span><b id="sum-delivery">{{ money(delivery) if delivery else L('ফ্রি', 'Free') }}</b></div>
+      <div class="sum-row total"><span>{{ L('মোট', 'Total') }}</span><b id="sum-total">{{ money(total) }}</b></div>
+      <button class="btn btn-primary btn-block btn-lg" type="submit">{{ L('অর্ডার কনফার্ম করুন', 'Place Order') }}</button>
+      <p class="secure">{{ ic('shield', 14) }} {{ L('আপনার তথ্য সুরক্ষিত থাকবে', 'Your information is kept safe') }}</p>
+      <p class="muted small">{{ L('অর্ডার করে আপনি আমাদের ', 'By ordering you agree to our ') }}<a href="{{ url_for('return_policy') }}">{{ L('রিটার্ন পলিসি', 'Return Policy') }}</a>{{ L(' ও ', ' and ') }}<a href="{{ url_for('privacy_policy') }}">{{ L('প্রাইভেসি পলিসি', 'Privacy Policy') }}</a>{{ L(' মেনে নিচ্ছেন।', '.') }}</p>
+    </aside>
+  </form>
+</div>
+{% endblock %}

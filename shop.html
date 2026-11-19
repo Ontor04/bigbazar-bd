@@ -1,0 +1,55 @@
+{% extends 'shop/base.html' %}
+{% from '_icons.html' import ic %}
+{% from 'shop/_card.html' import card with context %}
+{% block title %}{{ pick(category, 'name') if category else (L('সব পণ্য', 'All Products')) }} – {{ S.site_name }}{% endblock %}
+{% block content %}
+<div class="wrap">
+  <div class="crumbs"><a href="{{ url_for('home') }}">{{ L('হোম', 'Home') }}</a> / <span>{{ pick(category, 'name') if category else L('সব পণ্য', 'All Products') }}</span></div>
+  <div class="shop-head">
+    <h1>{% if text %}{{ L('"%s" এর ফলাফল' % text, 'Results for "%s"' % text) }}{% else %}{{ pick(category, 'name') if category else L('সব পণ্য', 'All Products') }}{% endif %}</h1>
+    <p class="muted">{{ bn(total) }} {{ L('টি পণ্য', 'products') }}</p>
+  </div>
+  <div class="shop-layout">
+    <aside class="filters">
+      <form method="get" action="{{ url_for('shop') if not category else url_for('shop', slug=category.slug) }}">
+        {% if text %}<input type="hidden" name="q" value="{{ text }}">{% endif %}
+        <h3>{{ ic('sliders', 18) }} {{ L('ফিল্টার', 'Filters') }}</h3>
+        {% if not category %}
+        <label class="flabel">{{ L('ক্যাটাগরি', 'Category') }}</label>
+        <select name="cat" class="input"><option value="">{{ L('সব', 'All') }}</option>{% for c in nav_categories %}<option value="{{ c.slug }}" {{ 'selected' if cat_slug == c.slug }}>{{ pick(c, 'name') }}</option>{% endfor %}</select>
+        {% endif %}
+        {% if brands %}<label class="flabel">{{ L('ব্র্যান্ড', 'Brand') }}</label>
+        <select name="brand" class="input"><option value="">{{ L('সব', 'All') }}</option>{% for b in brands %}<option {{ 'selected' if brand == b }}>{{ b }}</option>{% endfor %}</select>{% endif %}
+        <label class="flabel">{{ L('দাম (৳)', 'Price (৳)') }}</label>
+        <div class="range"><input class="input" type="number" min="0" name="min" value="{{ pmin }}" placeholder="{{ L('সর্বনিম্ন', 'Min') }}"><input class="input" type="number" min="0" name="max" value="{{ pmax }}" placeholder="{{ L('সর্বোচ্চ', 'Max') }}"></div>
+        <label class="flabel">{{ L('সাজান', 'Sort by') }}</label>
+        <select name="sort" class="input">
+          {% for k, bnl, enl in [('new','নতুন আগে','Newest'),('popular','জনপ্রিয়','Most popular'),('price_asc','দাম: কম থেকে বেশি','Price: low to high'),('price_desc','দাম: বেশি থেকে কম','Price: high to low'),('discount','সবচেয়ে বেশি ছাড়','Biggest discount')] %}
+          <option value="{{ k }}" {{ 'selected' if sort == k }}>{{ L(bnl, enl) }}</option>{% endfor %}
+        </select>
+        <label class="check"><input type="checkbox" name="stock" value="1" {{ 'checked' if only_stock }}> {{ L('শুধু স্টকে আছে', 'In stock only') }}</label>
+        <button class="btn btn-primary btn-block" type="submit">{{ L('প্রয়োগ করুন', 'Apply') }}</button>
+        <a class="btn btn-ghost btn-block" href="{{ url_for('shop') }}">{{ L('রিসেট', 'Reset') }}</a>
+      </form>
+    </aside>
+    <section>
+      {% if products %}
+      <div class="grid grid-3">{% for p in products %}{{ card(p) }}{% endfor %}</div>
+      {% if pages > 1 %}
+      <nav class="pager" aria-label="pagination">
+        {% if page > 1 %}<a href="{{ page_url(page-1) }}">←</a>{% endif %}
+        {% for n in range(1, pages + 1) %}{% if n == page %}<span class="on">{{ bn(n) }}</span>{% elif n <= 2 or n > pages - 2 or (n - page)|abs <= 1 %}<a href="{{ page_url(n) }}">{{ bn(n) }}</a>{% elif (n - page)|abs == 2 %}<span>…</span>{% endif %}{% endfor %}
+        {% if page < pages %}<a href="{{ page_url(page+1) }}">→</a>{% endif %}
+      </nav>{% endif %}
+      {% else %}
+      <div class="empty">
+        {{ ic('search', 44) }}
+        <h2>{{ L('কোনো পণ্য পাওয়া যায়নি', 'No Products Found') }}</h2>
+        <p>{{ L('অন্য শব্দ দিয়ে খুঁজুন অথবা ফিল্টার বদলান।', 'Try a different keyword or change the filters.') }}</p>
+        <a class="btn btn-primary" href="{{ url_for('shop') }}">{{ L('সব পণ্য দেখুন', 'Browse all products') }}</a>
+      </div>
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

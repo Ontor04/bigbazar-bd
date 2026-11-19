@@ -1,0 +1,50 @@
+{% extends 'admin/base.html' %}
+{% from '_icons.html' import ic %}
+{% from 'admin/_m.html' import csrf, status_pill with context %}
+{% block title %}Order {{ o.number }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><a class="muted" href="{{ url_for('admin.orders') }}">← All orders</a><h2 style="margin-top:4px">{{ o.number }} {{ status_pill(o.status) }}</h2><p>Placed {{ fdate(o.created_at) }}</p></div>
+  <div class="gap"><a class="btn btn-ghost" href="{{ url_for('admin.order_invoice', oid=o.id) }}" target="_blank" rel="noopener">{{ ic('printer', 16) }} Invoice / print</a>
+    <a class="btn btn-wa btn-ok" href="https://wa.me/88{{ o.phone }}" target="_blank" rel="noopener noreferrer">{{ ic('chat', 16) }} WhatsApp customer</a></div>
+</div>
+<div class="grid-2" style="align-items:start">
+  <div>
+    <section class="card">
+      <h2 style="margin-bottom:12px">Ordered items</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Product</th><th class="right">Price</th><th class="right">Qty</th><th class="right">Total</th></tr></thead>
+        <tbody>{% for i in items %}<tr><td>{{ i.name }}</td><td class="right">{{ money(i.price) }}</td><td class="right">{{ i.qty }}</td><td class="right">{{ money(i.price * i.qty) }}</td></tr>{% endfor %}</tbody></table></div>
+      <div class="totals"><div><span>Subtotal</span><span>{{ money(o.subtotal) }}</span></div><div><span>Delivery ({{ 'Dhaka' if o.area == 'dhaka' else 'Outside Dhaka' }})</span><span>{{ money(o.delivery) }}</span></div><div class="grand"><span>Total (Cash on Delivery)</span><span>{{ money(o.total) }}</span></div></div>
+    </section>
+    <section class="card mt">
+      <h2 style="margin-bottom:12px">History</h2>
+      <ul class="timeline">{% for h in history %}<li>{{ status_pill(h.status) }} <small>{{ fdate(h.created_at) }}{% if h.admin %} · by {{ h.admin }}{% endif %}</small>{% if h.note %}<div>{{ h.note }}</div>{% endif %}</li>{% endfor %}</ul>
+    </section>
+  </div>
+  <div>
+    <section class="card">
+      <h2 style="margin-bottom:12px">Update status</h2>
+      <form method="post" action="{{ url_for('admin.order_status', oid=o.id) }}">
+        {{ csrf() }}
+        <label class="field"><span>Status</span><select name="status">{% for s in STATUSES %}<option value="{{ s }}" {{ 'selected' if o.status == s }}>{{ s|capitalize }}</option>{% endfor %}</select></label>
+        <label class="field"><span>Note <small>(optional, saved in history)</small></span><input class="input" name="note" maxlength="200" placeholder="e.g. Courier tracking no."></label>
+        <button class="btn btn-primary btn-block" type="submit">Save status</button>
+        <p class="small muted" style="margin:10px 0 0">Cancelling an order puts its items back in stock automatically.</p>
+      </form>
+    </section>
+    <section class="card mt">
+      <h2 style="margin-bottom:12px">Customer</h2>
+      <dl class="kv">
+        <dt>Name</dt><dd>{{ o.name }}</dd>
+        <dt>Phone</dt><dd><a href="tel:{{ o.phone }}">{{ o.phone }}</a></dd>
+        <dt>Address</dt><dd>{{ o.address }}</dd>
+        <dt>Area</dt><dd>{{ 'Inside Dhaka' if o.area == 'dhaka' else 'Outside Dhaka' }}</dd>
+        {% if o.note %}<dt>Note</dt><dd>{{ o.note }}</dd>{% endif %}
+        <dt>Payment</dt><dd>Cash on Delivery</dd>
+      </dl>
+      {% if o.customer_id %}<a class="btn btn-ghost btn-sm mt" href="{{ url_for('admin.customer_detail', cid=o.customer_id) }}">Customer history →</a>{% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

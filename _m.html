@@ -1,0 +1,24 @@
+{# shared admin macros #}
+{% macro pager(page, pages, qs) -%}
+{% if pages > 1 %}
+<nav class="pager" aria-label="Pages">
+  {% if page > 1 %}<a href="{{ url_for(request.endpoint, page=page-1, **qs) }}" aria-label="Previous">‹</a>{% else %}<span class="dis">‹</span>{% endif %}
+  {% for n in range(1, pages + 1) %}
+    {% if n == 1 or n == pages or (n - page)|abs <= 2 %}
+      {% if n == page %}<span class="on" aria-current="page">{{ n }}</span>{% else %}<a href="{{ url_for(request.endpoint, page=n, **qs) }}">{{ n }}</a>{% endif %}
+    {% elif (n - page)|abs == 3 %}<span class="dis">…</span>{% endif %}
+  {% endfor %}
+  {% if page < pages %}<a href="{{ url_for(request.endpoint, page=page+1, **qs) }}" aria-label="Next">›</a>{% else %}<span class="dis">›</span>{% endif %}
+</nav>
+{% endif %}
+{%- endmacro %}
+
+{% macro status_pill(st) -%}
+<span class="pill st-{{ st }}">{{ st|capitalize }}</span>
+{%- endmacro %}
+
+{% macro stars(n) -%}
+<span class="stars" aria-label="{{ n }} out of 5">{{ '★' * n }}{{ '☆' * (5 - n) }}</span>
+{%- endmacro %}
+
+{% macro csrf() -%}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{%- endmacro %}

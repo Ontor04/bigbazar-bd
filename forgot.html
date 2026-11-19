@@ -1,0 +1,17 @@
+{% extends 'admin/auth_base.html' %}
+{% from 'admin/_m.html' import csrf with context %}
+{% block title %}Forgot password{% endblock %}
+{% block box %}
+<h1>Forgot password</h1>
+<p class="lead">Enter your username or admin email.</p>
+{% if sent %}
+  <div class="flash flash-success" role="status">If an account matches, a password-reset link (valid for 30 minutes) has been sent to the admin email.</div>
+{% else %}
+<form method="post">
+  {{ csrf() }}
+  <label class="field"><span>Username or email</span><input class="input" name="who" required maxlength="120" autofocus></label>
+  <button class="btn btn-primary btn-block" type="submit">Send reset link</button>
+</form>
+{% endif %}
+<p class="links"><a href="{{ url_for('admin.login') }}">← Back to login</a></p>
+{% endblock %}

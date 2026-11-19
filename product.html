@@ -1,0 +1,63 @@
+{% extends 'shop/base.html' %}
+{% from '_icons.html' import ic %}
+{% from 'shop/_card.html' import card, stars with context %}
+{% block title %}{{ pick(p, 'name') }} – {{ S.site_name }}{% endblock %}
+{% block desc %}{{ (pick(p, 'desc') or pick(p, 'name'))[:150] }}{% endblock %}
+{% block content %}
+<div class="wrap">
+  <div class="crumbs"><a href="{{ url_for('home') }}">{{ L('হোম', 'Home') }}</a> / {% if p.cat_slug %}<a href="{{ url_for('shop', slug=p.cat_slug) }}">{{ pick(p, 'cat') }}</a> / {% endif %}<span>{{ pick(p, 'name') }}</span></div>
+  <section class="pdp">
+    <div class="pdp-media"><img src="{{ img_url(p.image) }}" alt="{{ pick(p, 'name') }}" width="640" height="640">
+      {% if p.percent_off and p.in_stock %}<span class="tag tag-off">-{{ bn(p.percent_off) }}%</span>{% endif %}</div>
+    <div class="pdp-info">
+      {% if p.brand %}<div class="pill pill-soft">{{ p.brand }}</div>{% endif %}
+      <h1>{{ pick(p, 'name') }}</h1>
+      <div class="pdp-rate">{% if p.rating_count %}{{ stars(p.rating) }} <b>{{ bn(p.rating) }}</b> <a href="#reviews">({{ bn(p.rating_count) }} {{ L('টি রিভিউ', 'reviews') }})</a>{% else %}<a href="#reviews">{{ L('প্রথম রিভিউ দিন', 'Be the first to review') }}</a>{% endif %}</div>
+      <div class="price price-lg"><b>{{ money(p.sale) }}</b>{% if p.compare %} <s>{{ money(p.compare) }}</s> <span class="save">{{ L('সাশ্রয় ', 'Save ') }}{{ money(p.compare - p.sale) }}</span>{% endif %}</div>
+      <p class="stock {{ 'ok' if p.in_stock else 'no' }}">{{ ic('check' if p.in_stock else 'x', 16) }} {% if p.in_stock %}{{ L('স্টকে আছে', 'In stock') }}{% if p.stock <= 5 %} — {{ L('মাত্র %s টি বাকি' % bn(p.stock), 'only %s left' % p.stock) }}{% endif %}{% else %}{{ L('স্টকে নেই', 'Out of stock') }}{% endif %}</p>
+      {% if p.in_stock %}
+      <form method="post" class="buy-form" data-cart-add>
+        <div class="qty" data-qty><button type="button" data-dec aria-label="-">−</button><input type="number" name="qty" value="1" min="1" max="{{ [p.stock, 20]|min }}" aria-label="{{ L('পরিমাণ', 'Quantity') }}"><button type="button" data-inc aria-label="+">+</button></div>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="pid" value="{{ p.id }}">
+        <button class="btn btn-dark" type="submit" formaction="{{ url_for('cart_add') }}">{{ ic('cart', 18) }} {{ L('কার্টে যোগ করুন', 'Add to Cart') }}</button>
+        <button class="btn btn-primary" type="submit" formaction="{{ url_for('buy_now') }}" data-no-ajax>{{ L('এখনই কিনুন', 'Buy Now') }}</button>
+      </form>
+      {% endif %}
+      <a class="btn btn-wa" href="{{ wa_link(L('আমি এই পণ্যটি সম্পর্কে জানতে চাই: ', 'I want to know about: ') + pick(p, 'name') + ' ' + request.url) }}" target="_blank" rel="noopener noreferrer">{{ ic('chat', 18) }} {{ L('হোয়াটসঅ্যাপে জিজ্ঞাসা করুন', 'Ask on WhatsApp') }}</a>
+      <ul class="trust">
+        <li>{{ ic('truck', 18) }} {{ L('ক্যাশ অন ডেলিভারি – ঢাকায় ', 'Cash on Delivery – Dhaka ') }}{{ money(S.delivery_dhaka|int) }}{{ L(', ঢাকার বাইরে ', ', outside Dhaka ') }}{{ money(S.delivery_outside|int) }}</li>
+        <li>{{ ic('clock', 18) }} {{ L('ডেলিভারি সময়: ', 'Delivery time: ') }}{{ S['delivery_time_' + lang] }}</li>
+        <li>{{ ic('return', 18) }} {{ L('৩ দিনের মধ্যে রিটার্ন/এক্সচেঞ্জ (শর্ত প্রযোজ্য)', '3-day return/exchange (conditions apply)') }}</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="tabs">
+    <h2>{{ L('পণ্যের বিবরণ', 'Description') }}</h2>
+    <div class="prose">{{ (pick(p, 'desc') or L('বিস্তারিত শীঘ্রই যুক্ত করা হবে।', 'Details coming soon.'))|rich }}</div>
+  </section>
+
+  <section class="tabs" id="reviews">
+    <h2>{{ L('গ্রাহক রিভিউ', 'Customer Reviews') }}</h2>
+    <div class="reviews-layout">
+      <div>
+        {% for r in reviews %}<div class="review-item">{{ stars(r.rating) }} <b>{{ r.name }}</b> <small class="muted">{{ fdate(r.created_at, false) }}</small>{% if r.comment %}<p>{{ r.comment }}</p>{% endif %}</div>
+        {% else %}<p class="muted">{{ L('এখনো কোনো রিভিউ নেই।', 'No reviews yet.') }}</p>{% endfor %}
+      </div>
+      <form method="post" action="{{ url_for('add_review', pid=p.id) }}" class="review-form">
+        <h3>{{ L('আপনার মতামত দিন', 'Write a review') }}</h3>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <label class="field"><span>{{ L('আপনার নাম', 'Your name') }}</span><input class="input" name="name" required maxlength="60"></label>
+        <div class="field"><span>{{ L('রেটিং', 'Rating') }}</span>
+          <div class="rate-input">{% for i in [5,4,3,2,1] %}<input type="radio" name="rating" id="r{{ i }}" value="{{ i }}" required><label for="r{{ i }}" title="{{ i }}">★</label>{% endfor %}</div></div>
+        <label class="field"><span>{{ L('মন্তব্য', 'Comment') }}</span><textarea class="input" name="comment" rows="3" maxlength="600"></textarea></label>
+        <button class="btn btn-primary" type="submit">{{ L('রিভিউ জমা দিন', 'Submit review') }}</button>
+        <small class="muted">{{ L('অ্যাডমিন অনুমোদনের পর রিভিউ প্রকাশিত হবে।', 'Reviews appear after admin approval.') }}</small>
+      </form>
+    </div>
+  </section>
+
+  {% if related %}<section class="section"><div class="section-head"><h2>{{ L('সম্পর্কিত পণ্য', 'Related Products') }}</h2></div><div class="grid">{% for r in related %}{{ card(r) }}{% endfor %}</div></section>{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% from '_icons.html' import ic %}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>{% block title %}Admin{% endblock %} – {{ S.site_name }}</title>
+<link rel="icon" href="{{ url_for('static', filename='img/favicon.png') }}">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body>
+<div class="auth"><div class="auth-box">
+  <img class="logo" src="{{ img_url(S.logo, 'static/img/logo.png') }}" alt="{{ S.site_name }}">
+  {% with msgs = get_flashed_messages(with_categories=true) %}{% for cat, m in msgs %}<div class="flash flash-{{ cat }}" role="status">{{ m }}</div>{% endfor %}{% endwith %}
+  {% block box %}{% endblock %}
+</div></div>
+<script src="{{ url_for('static', filename='js/admin.js') }}" defer></script>
+</body>
+</html>

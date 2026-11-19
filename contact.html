@@ -1,0 +1,18 @@
+{% extends 'shop/base.html' %}
+{% from '_icons.html' import ic %}
+{% block title %}{{ L('যোগাযোগ', 'Contact Us') }} – {{ S.site_name }}{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <div class="crumbs"><a href="{{ url_for('home') }}">{{ L('হোম', 'Home') }}</a> / <span>{{ L('যোগাযোগ', 'Contact Us') }}</span></div>
+  <h1 class="page-title">{{ L('আমাদের সাথে যোগাযোগ করুন', 'Contact Us') }}</h1>
+  <p class="muted">{{ L('যেকোনো প্রশ্ন বা অর্ডারের জন্য নিচের যেকোনো মাধ্যমে যোগাযোগ করুন।', 'For any question or order, reach us through any of the options below.') }}</p>
+  <div class="contact-grid">
+    <a class="contact-card" href="{{ wa_link() }}" target="_blank" rel="noopener noreferrer">{{ ic('chat', 28) }}<b>WhatsApp</b><span>{{ bn(S.whatsapp) }}</span></a>
+    <a class="contact-card" href="tel:{{ S.phone }}">{{ ic('phone', 28) }}<b>{{ L('ফোন', 'Phone') }}</b><span>{{ bn(S.phone) }}</span></a>
+    <a class="contact-card" href="mailto:{{ S.email }}">{{ ic('mail', 28) }}<b>{{ L('ইমেইল', 'Email') }}</b><span>{{ S.email }}</span></a>
+    {% if S.facebook %}<a class="contact-card" href="{{ S.facebook }}" target="_blank" rel="noopener noreferrer">{{ ic('facebook', 28) }}<b>Facebook</b><span>{{ L('আমাদের পেজ', 'Our page') }}</span></a>{% endif %}
+    <div class="contact-card">{{ ic('pin', 28) }}<b>{{ L('ঠিকানা', 'Address') }}</b><span>{{ S['address_' + lang] }}</span></div>
+    <div class="contact-card">{{ ic('clock', 28) }}<b>{{ L('ডেলিভারি সময়', 'Delivery time') }}</b><span>{{ S['delivery_time_' + lang] }}</span></div>
+  </div>
+</div>
+{% endblock %}

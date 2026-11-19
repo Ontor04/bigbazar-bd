@@ -1,0 +1,35 @@
+{% extends 'shop/base.html' %}
+{% from '_icons.html' import ic %}
+{% block title %}{{ L('আমার কার্ট', 'My Cart') }} – {{ S.site_name }}{% endblock %}
+{% block content %}
+<div class="wrap">
+  <h1 class="page-title">{{ ic('cart', 28) }} {{ L('আমার কার্ট', 'My Cart') }}</h1>
+  {% if items %}
+  <div class="cart-layout">
+    <form method="post" action="{{ url_for('cart_update') }}" class="cart-list">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      {% for it in items %}
+      <div class="cart-row">
+        <a href="{{ url_for('product', pid=it.p.id) }}"><img src="{{ img_url(it.p.image) }}" alt="" width="84" height="84"></a>
+        <div class="cart-info"><a href="{{ url_for('product', pid=it.p.id) }}"><b>{{ pick(it.p, 'name') }}</b></a><div class="muted">{{ money(it.p.sale) }}</div>
+          <div class="qty" data-qty><button type="button" data-dec aria-label="-">−</button><input type="number" name="qty_{{ it.p.id }}" value="{{ it.qty }}" min="0" max="{{ [it.p.stock, 20]|min }}"><button type="button" data-inc aria-label="+">+</button></div></div>
+        <div class="cart-line"><b>{{ money(it.line) }}</b>
+          <button class="link-danger" type="submit" formaction="{{ url_for('cart_remove') }}" name="pid" value="{{ it.p.id }}" aria-label="{{ L('সরিয়ে ফেলুন', 'Remove') }}">{{ ic('trash', 18) }}</button></div>
+      </div>
+      {% endfor %}
+      <div class="cart-actions"><a class="btn btn-ghost" href="{{ url_for('shop') }}">← {{ L('কেনাকাটা চালিয়ে যান', 'Continue shopping') }}</a><button class="btn btn-dark" type="submit">{{ L('কার্ট আপডেট', 'Update cart') }}</button></div>
+    </form>
+    <aside class="summary">
+      <h3>{{ L('অর্ডার সারাংশ', 'Order Summary') }}</h3>
+      <div class="sum-row"><span>{{ L('সাবটোটাল', 'Subtotal') }}</span><b>{{ money(subtotal) }}</b></div>
+      <div class="sum-row"><span>{{ L('ডেলিভারি চার্জ', 'Delivery') }}</span><span class="muted">{{ L('চেকআউটে হিসাব হবে', 'calculated at checkout') }}</span></div>
+      <p class="muted small">{{ L('ঢাকায় ', 'Dhaka ') }}{{ money(S.delivery_dhaka|int) }} · {{ L('ঢাকার বাইরে ', 'Outside ') }}{{ money(S.delivery_outside|int) }}{% if free_min %} · {{ L('%s এর উপরে ফ্রি ডেলিভারি' % money(free_min), 'Free delivery over %s' % money(free_min)) }}{% endif %}</p>
+      <a class="btn btn-primary btn-block btn-lg" href="{{ url_for('checkout') }}">{{ L('চেকআউট করুন', 'Proceed to Checkout') }} →</a>
+      <p class="secure">{{ ic('lock', 14) }} {{ L('ক্যাশ অন ডেলিভারি – হাতে পেয়ে টাকা দিন', 'Cash on Delivery – pay when you receive') }}</p>
+    </aside>
+  </div>
+  {% else %}
+  <div class="empty">{{ ic('cart', 48) }}<h2>{{ L('আপনার কার্ট খালি', 'Your cart is empty') }}</h2><p>{{ L('পছন্দের পণ্য কার্টে যোগ করুন।', 'Add products you like to your cart.') }}</p><a class="btn btn-primary" href="{{ url_for('shop') }}">{{ L('কেনাকাটা শুরু করুন', 'Start shopping') }}</a></div>
+  {% endif %}
+</div>
+{% endblock %}

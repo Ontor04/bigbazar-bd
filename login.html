@@ -1,0 +1,16 @@
+{% extends 'admin/auth_base.html' %}
+{% from 'admin/_m.html' import csrf with context %}
+{% block title %}Admin Login{% endblock %}
+{% block box %}
+<h1>Admin Login</h1>
+<p class="lead">অ্যাডমিন লগইন · authorised staff only</p>
+{% if error %}<div class="flash flash-error" role="alert">{{ error }}</div>{% endif %}
+<form method="post" autocomplete="on">
+  {{ csrf() }}
+  <label class="field"><span>Username</span><input class="input" name="username" required maxlength="60" autocomplete="username" autofocus></label>
+  <div class="field"><label for="pw">Password</label>
+    <div class="pw-wrap"><input class="input" id="pw" type="password" name="password" required maxlength="200" autocomplete="current-password"><button type="button" data-toggle-pw="pw">Show</button></div></div>
+  <button class="btn btn-primary btn-block" type="submit">Log in</button>
+</form>
+<p class="links"><a href="{{ url_for('admin.forgot') }}">Forgot password?</a></p>
+{% endblock %}

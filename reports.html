@@ -1,0 +1,46 @@
+{% extends 'admin/base.html' %}
+{% from '_icons.html' import ic %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+<div class="page-head"><div><h2>Sales reports</h2><p>Since {{ fdate(since, False) }} · cancelled orders are not counted as revenue.</p></div></div>
+<nav class="tabs" aria-label="Report range">
+  {% for k, lab in [('daily', 'Daily (30 days)'), ('weekly', 'Weekly (12 weeks)'), ('monthly', 'Monthly (12 months)')] %}<a href="{{ url_for('admin.reports', range=k) }}" class="{{ 'on' if kind == k }}">{{ lab }}</a>{% endfor %}
+</nav>
+<div class="cards">
+  <div class="card stat"><span class="lbl">Revenue</span><span class="val">{{ money(totals.revenue) }}</span></div>
+  <div class="card stat"><span class="lbl">Orders</span><span class="val">{{ num(totals.orders) }}</span></div>
+  <div class="card stat"><span class="lbl">Delivered</span><span class="val">{{ num(totals.delivered) }}</span></div>
+  <div class="card stat"><span class="lbl">Cancelled</span><span class="val">{{ num(totals.cancelled) }}</span></div>
+</div>
+<section class="card mt">
+  <div class="card-head"><h2>Revenue per {{ {'daily': 'day', 'weekly': 'week', 'monthly': 'month'}[kind] }}</h2></div>
+  <div class="chart" data-chart='{{ {"labels": chart|map(attribute="label")|list, "values": chart|map(attribute="revenue")|list, "fmt": "money", "name": "Revenue", "title": "Revenue report"}|tojson }}'></div>
+</section>
+<div class="grid-2 mt" style="align-items:start">
+  <section class="card">
+    <div class="card-head"><h2>Breakdown</h2></div>
+    {% if rows %}<div class="table-wrap"><table>
+      <thead><tr><th>Period</th><th class="right">Orders</th><th class="right">Delivered</th><th class="right">Cancelled</th><th class="right">Revenue</th></tr></thead>
+      <tbody>{% for r in rows %}<tr><td class="nowrap">{{ r.period }}</td><td class="right">{{ r.orders }}</td><td class="right">{{ r.delivered }}</td><td class="right">{{ r.cancelled }}</td><td class="right nowrap"><b>{{ money(r.revenue) }}</b></td></tr>{% endfor %}</tbody></table></div>
+    {% else %}<div class="empty">No orders in this period yet.</div>{% endif %}
+  </section>
+  <div>
+    <section class="card">
+      <div class="card-head"><h2>Best-selling products</h2></div>
+      {% for b in best %}<div class="list-row"><span>{{ loop.index }}. {{ b.name }}</span><span class="nowrap"><b>{{ b.qty }}</b> sold · {{ money(b.revenue) }}</span></div>{% else %}<p class="muted">No sales yet.</p>{% endfor %}
+    </section>
+    <section class="card mt">
+      <div class="card-head"><h2>Export (CSV)</h2></div>
+      <form method="get" action="{{ url_for('admin.export_csv') }}">
+        <div class="form-grid">
+          <label class="field"><span>From</span><input class="input" type="date" name="from"></label>
+          <label class="field"><span>To</span><input class="input" type="date" name="to"></label>
+        </div>
+        <label class="field"><span>Report</span><select name="type"><option value="orders">Orders</option><option value="bestsellers">Best sellers</option><option value="products">Products & stock</option><option value="customers">Customers</option></select></label>
+        <button class="btn btn-primary" type="submit">{{ ic('download', 16) }} Download</button>
+        <p class="small muted" style="margin:10px 0 0">Opens in Excel / Google Sheets with Bangla text intact.</p>
+      </form>
+    </section>
+  </div>
+</div>
+{% endblock %}

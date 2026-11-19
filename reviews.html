@@ -1,0 +1,28 @@
+{% extends 'admin/base.html' %}
+{% from '_icons.html' import ic %}
+{% from 'admin/_m.html' import csrf, stars with context %}
+{% block title %}Reviews{% endblock %}
+{% block content %}
+<div class="page-head"><div><h2>Customer reviews</h2><p>New reviews stay hidden until you approve them.</p></div></div>
+<nav class="tabs" aria-label="Review status">
+  {% for s, lab in [('pending', 'Pending'), ('approved', 'Approved'), ('rejected', 'Rejected'), ('all', 'All')] %}
+  <a href="{{ url_for('admin.reviews', status=s) }}" class="{{ 'on' if status == s }}">{{ lab }}{% if s != 'all' %} <b>{{ counts.get(s, 0) }}</b>{% endif %}</a>
+  {% endfor %}
+</nav>
+{% for r in rows %}
+<article class="review">
+  <div class="gap" style="justify-content:space-between">
+    <div><b>{{ r.name }}</b> · {{ stars(r.rating) }} <span class="pill st-{{ r.status }}">{{ r.status|capitalize }}</span></div>
+    <small>{{ fdate(r.created_at) }}</small>
+  </div>
+  <p class="small muted" style="margin:2px 0 8px">on <a href="{{ url_for('product', pid=r.product_id) }}" target="_blank" rel="noopener">{{ r.name_en or r.name_bn }}</a></p>
+  <p>{{ r.comment or '(no comment)' }}</p>
+  <div class="gap">
+    {% for act, lab, cls in [('approve', 'Approve', 'btn-ok'), ('reject', 'Reject', 'btn-ghost'), ('delete', 'Delete', 'btn-danger')] %}
+    {% if not (act == 'approve' and r.status == 'approved') and not (act == 'reject' and r.status == 'rejected') %}
+    <form method="post" action="{{ url_for('admin.review_action', rid=r.id, action=act) }}" {% if act == 'delete' %}data-confirm="Delete this review permanently?"{% endif %}>{{ csrf() }}<input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}"><button class="btn btn-sm {{ cls }}" type="submit">{{ lab }}</button></form>
+    {% endif %}{% endfor %}
+  </div>
+</article>
+{% else %}<div class="card empty">No {{ status if status != 'all' else '' }} reviews.</div>{% endfor %}
+{% endblock %}

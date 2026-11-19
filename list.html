@@ -1,0 +1,36 @@
+{% extends 'admin/base.html' %}
+{% from '_icons.html' import ic %}
+{% from 'admin/_m.html' import csrf with context %}
+{% block title %}{{ cfg.title }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h2>{{ cfg.title }} <small>· {{ cfg.bn }}</small></h2>
+    {% if res == 'categories' %}<p>Categories appear in the website menu and on the homepage.</p>
+    {% elif res == 'banners' %}<p>Hero banners slide at the top of the homepage; promo cards sit in the middle.</p>
+    {% else %}<p>A campaign lowers prices automatically between its start and end dates.</p>{% endif %}</div>
+  <a class="btn btn-primary" href="{{ url_for('admin.res_form', res=res) }}">{{ ic('plus', 16) }} Add {{ cfg.singular|lower }}</a>
+</div>
+{% if rows %}
+<div class="table-wrap"><table>
+  <thead><tr>{% for c in cfg.cols %}<th>{{ c[1] }}</th>{% endfor %}<th></th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+  <tr>
+    {% for c in cfg.cols %}{% set k = c[0] %}
+    <td>
+      {% if c[2] == 'image' %}{% if r[k] %}<img class="thumb" src="{{ img_url(r[k]) }}" alt="" loading="lazy">{% else %}<span class="muted">—</span>{% endif %}
+      {% elif c[2] == 'text2' %}<b>{{ r[k] or r[k[:-2] ~ 'bn'] }}</b>{% if r[k] and r[k[:-2] ~ 'bn'] %}<small>{{ r[k[:-2] ~ 'bn'] }}</small>{% endif %}
+      {% elif c[2] == 'bool' %}<span class="pill {{ 'pill-ok' if r[k] else 'pill-bad' }}">{{ 'Yes' if r[k] else 'No' }}</span>
+      {% elif c[2] == 'pct' %}<b>{{ r[k] }}%</b>
+      {% else %}{{ r[k] if r[k] not in (None, '') else '—' }}{% endif %}
+    </td>
+    {% endfor %}
+    <td><div class="row-actions">
+      <a class="btn btn-ghost btn-sm" href="{{ url_for('admin.res_form', res=res, rid=r.id) }}">{{ ic('edit', 15) }} Edit</a>
+      <form method="post" action="{{ url_for('admin.res_delete', res=res, rid=r.id) }}" data-confirm="Delete this {{ cfg.singular|lower }}?{% if res == 'categories' %} Products in it will become uncategorised.{% endif %}">{{ csrf() }}<button class="btn btn-danger btn-sm" type="submit" aria-label="Delete">{{ ic('trash', 15) }}</button></form>
+    </div></td>
+  </tr>
+  {% endfor %}
+  </tbody></table></div>
+{% else %}<div class="card empty">Nothing here yet. <a href="{{ url_for('admin.res_form', res=res) }}"><b>Add {{ cfg.singular|lower }}</b></a>.</div>{% endif %}
+{% endblock %}

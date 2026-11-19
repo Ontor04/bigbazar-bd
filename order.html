@@ -1,0 +1,28 @@
+{% extends 'shop/base.html' %}
+{% from '_icons.html' import ic %}
+{% block title %}{{ L('অর্ডার সম্পন্ন', 'Order placed') }} – {{ S.site_name }}{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <div class="success">
+    <span class="success-ic">{{ ic('check', 40) }}</span>
+    <h1>{{ L('ধন্যবাদ! আপনার অর্ডার গৃহীত হয়েছে', 'Thank you! Your order is confirmed') }}</h1>
+    <p>{{ L('আমরা শীঘ্রই আপনার সাথে ফোনে যোগাযোগ করব।', 'We will contact you shortly by phone.') }}</p>
+    <div class="order-no">{{ L('অর্ডার নম্বর', 'Order number') }}<b>{{ order.number }}</b><small>{{ L('এই নম্বরটি সংরক্ষণ করুন', 'Please save this number') }}</small></div>
+  </div>
+  <section class="panel">
+    <h2>{{ L('অর্ডারের বিবরণ', 'Order details') }}</h2>
+    {% for i in items %}<div class="sum-row"><span>{{ i.name }} × {{ bn(i.qty) }}</span><b>{{ money(i.price * i.qty) }}</b></div>{% endfor %}
+    <div class="sum-row"><span>{{ L('সাবটোটাল', 'Subtotal') }}</span><b>{{ money(order.subtotal) }}</b></div>
+    <div class="sum-row"><span>{{ L('ডেলিভারি চার্জ', 'Delivery') }}</span><b>{{ money(order.delivery) if order.delivery else L('ফ্রি', 'Free') }}</b></div>
+    <div class="sum-row total"><span>{{ L('মোট (ক্যাশ অন ডেলিভারি)', 'Total (Cash on Delivery)') }}</span><b>{{ money(order.total) }}</b></div>
+    <hr>
+    <p><b>{{ order.name }}</b> · {{ bn(order.phone) }}<br>{{ order.address }}</p>
+    <p class="muted">{{ L('আনুমানিক ডেলিভারি: ', 'Estimated delivery: ') }}{{ S['delivery_time_' + lang] }}</p>
+    <div class="btn-row">
+      <a class="btn btn-wa" href="{{ wa_link(wa_text) }}" target="_blank" rel="noopener noreferrer">{{ ic('chat', 18) }} {{ L('হোয়াটসঅ্যাপে অর্ডার পাঠান', 'Send order on WhatsApp') }}</a>
+      <a class="btn btn-ghost" href="{{ url_for('track') }}">{{ L('অর্ডার ট্র্যাক করুন', 'Track order') }}</a>
+      <a class="btn btn-primary" href="{{ url_for('shop') }}">{{ L('আরও কেনাকাটা করুন', 'Continue shopping') }}</a>
+    </div>
+  </section>
+</div>
+{% endblock %}

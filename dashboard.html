@@ -1,0 +1,51 @@
+{% extends 'admin/base.html' %}
+{% from '_icons.html' import ic %}
+{% from 'admin/_m.html' import status_pill with context %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="cards">
+  <div class="card stat"><span class="ico">{{ ic('chart', 20) }}</span><span class="lbl">Total Revenue</span><span class="val">{{ money(stats.revenue) }}</span><span class="sub">Excludes cancelled orders</span></div>
+  <div class="card stat"><span class="ico">{{ ic('bag', 20) }}</span><span class="lbl">Total Orders</span><span class="val">{{ num(stats.orders) }}</span><span class="sub">All time</span></div>
+  <div class="card stat"><span class="ico">{{ ic('tag', 20) }}</span><span class="lbl">Total Sales</span><span class="val">{{ num(stats.sold) }}</span><span class="sub">Units sold</span></div>
+  <div class="card stat"><span class="ico">{{ ic('users', 20) }}</span><span class="lbl">Total Customers</span><span class="val">{{ num(stats.customers) }}</span><span class="sub">Unique phone numbers</span></div>
+  <a class="card stat" href="{{ url_for('admin.orders', status='pending') }}"><span class="ico">{{ ic('clock', 20) }}</span><span class="lbl">Pending Orders</span><span class="val">{{ num(stats.pending) }}</span><span class="sub">Need your confirmation</span></a>
+  <a class="card stat" href="{{ url_for('admin.orders', status='delivered') }}"><span class="ico">{{ ic('check', 20) }}</span><span class="lbl">Delivered Orders</span><span class="val">{{ num(stats.delivered) }}</span><span class="sub">Completed</span></a>
+</div>
+
+<div class="grid-2 mt">
+  <section class="card">
+    <div class="card-head"><h2>Revenue – last 14 days</h2><a class="btn btn-ghost btn-sm" href="{{ url_for('admin.reports') }}">Full reports</a></div>
+    <div class="chart" data-chart='{{ {"labels": chart.series|map(attribute="label")|list, "values": chart.series|map(attribute="revenue")|list, "fmt": "money", "name": "Revenue", "title": "Revenue in the last 14 days"}|tojson }}'></div>
+  </section>
+  <section class="card">
+    <div class="card-head"><h2>Orders by status</h2></div>
+    {% set mx = [chart.status|map(attribute='n')|max, 1]|max %}
+    {% for s in chart.status %}
+    <a class="hbar" href="{{ url_for('admin.orders', status=s.s) }}"><span>{{ s.s|capitalize }}</span><span class="track"><span class="fill" style="display:block;width:{{ (s.n * 100 / mx)|round|int }}%;{% if not s.n %}min-width:0;{% endif %}"></span></span><b>{{ s.n }}</b></a>
+    {% endfor %}
+  </section>
+</div>
+
+<div class="grid-2 mt">
+  <section class="card">
+    <div class="card-head"><h2>Recent orders</h2><a class="btn btn-ghost btn-sm" href="{{ url_for('admin.orders') }}">View all</a></div>
+    {% if recent %}
+    <div class="table-wrap"><table>
+      <thead><tr><th>Order</th><th>Customer</th><th>Date</th><th class="right">Total</th><th>Status</th></tr></thead>
+      <tbody>{% for o in recent %}
+        <tr><td><a href="{{ url_for('admin.order_detail', oid=o.id) }}"><b>{{ o.number }}</b></a></td><td>{{ o.name }}<small>{{ o.phone }}</small></td><td class="nowrap">{{ fdate(o.created_at) }}</td><td class="right">{{ money(o.total) }}</td><td>{{ status_pill(o.status) }}</td></tr>
+      {% endfor %}</tbody></table></div>
+    {% else %}<div class="empty">No orders yet. They will appear here as soon as a customer orders.</div>{% endif %}
+  </section>
+  <div>
+    <section class="card">
+      <div class="card-head"><h2>Best sellers</h2></div>
+      {% for b in best %}<div class="list-row"><span>{{ b.name }}</span><b>{{ b.qty }} sold</b></div>{% else %}<p class="muted">No sales yet.</p>{% endfor %}
+    </section>
+    <section class="card mt">
+      <div class="card-head"><h2>Low stock</h2>{% if stats.low %}<span class="pill pill-bad">{{ stats.low }}</span>{% endif %}</div>
+      {% for p in low_products %}<div class="list-row"><a href="{{ url_for('admin.product_form', pid=p.id) }}">{{ p.name_en or p.name_bn }}</a><b>{{ p.stock }} left</b></div>{% else %}<p class="muted">All products have enough stock.</p>{% endfor %}
+    </section>
+  </div>
+</div>
+{% endblock %}

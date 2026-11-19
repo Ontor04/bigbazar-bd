@@ -1,0 +1,19 @@
+{% extends 'admin/base.html' %}
+{% from 'admin/_m.html' import csrf with context %}
+{% block title %}My Account{% endblock %}
+{% block content %}
+<div class="card" style="max-width:560px">
+  <h2 style="margin-bottom:14px">Account & password</h2>
+  {% if error %}<div class="errors" role="alert" style="padding-left:16px">{{ error }}</div>{% endif %}
+  <form method="post" autocomplete="off">
+    {{ csrf() }}
+    <label class="field"><span>Username</span><input class="input" value="{{ admin_user.username }}" disabled></label>
+    <label class="field"><span>Email (used for password reset)</span><input class="input" type="email" name="email" value="{{ admin_user.email }}" required maxlength="120"></label>
+    <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
+    <label class="field"><span>New password <small>(leave empty to keep the current one)</small></span><input class="input" type="password" name="password" minlength="10" autocomplete="new-password"></label>
+    <label class="field"><span>Repeat new password</span><input class="input" type="password" name="password2" autocomplete="new-password"></label>
+    <label class="field"><span>Current password <small>(required to save any change)</small></span><input class="input" type="password" name="current" required autocomplete="current-password"></label>
+    <button class="btn btn-primary" type="submit">Save changes</button>
+  </form>
+</div>
+{% endblock %}

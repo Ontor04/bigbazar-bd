@@ -1,0 +1,43 @@
+{% extends 'admin/base.html' %}
+{% from '_icons.html' import ic %}
+{% from 'admin/_m.html' import csrf with context %}
+{% block title %}Website Settings{% endblock %}
+{% set labels = {
+ 'site_name': 'Shop name', 'slogan_bn': 'Slogan (Bangla)', 'slogan_en': 'Slogan (English)',
+ 'announcement_bn': 'Top announcement bar (Bangla)', 'announcement_en': 'Top announcement bar (English)',
+ 'about_bn': 'About Us (Bangla)', 'about_en': 'About Us (English)',
+ 'whatsapp': 'WhatsApp number', 'phone': 'Phone number', 'email': 'Email address', 'facebook': 'Facebook page link',
+ 'address_bn': 'Address (Bangla)', 'address_en': 'Address (English)', 'bkash': 'bKash number (optional)', 'nagad': 'Nagad number (optional)',
+ 'delivery_dhaka': 'Delivery charge – inside Dhaka (৳)', 'delivery_outside': 'Delivery charge – outside Dhaka (৳)',
+ 'free_delivery_min': 'Free delivery above (৳) – 0 = never free', 'delivery_time_bn': 'Delivery time (Bangla)', 'delivery_time_en': 'Delivery time (English)',
+ 'return_bn': 'Return & Refund Policy (Bangla)', 'return_en': 'Return & Refund Policy (English)',
+ 'privacy_bn': 'Privacy Policy (Bangla)', 'privacy_en': 'Privacy Policy (English)'} %}
+{% set numeric = ['delivery_dhaka', 'delivery_outside', 'free_delivery_min'] %}
+{% set tabs = [('general', 'General'), ('contact', 'Contact'), ('delivery', 'Delivery'), ('policies', 'Policies'), ('logo', 'Logo')] %}
+{% block content %}
+<nav class="tabs" aria-label="Settings sections">{% for t, lab in tabs %}<a href="{{ url_for('admin.settings_page', tab=t) }}" class="{{ 'on' if tab == t }}">{{ lab }}</a>{% endfor %}</nav>
+{% if errors %}<ul class="errors" role="alert">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+<form method="post" {% if tab == 'logo' %}enctype="multipart/form-data"{% endif %} class="card" style="max-width:860px">
+  {{ csrf() }}<input type="hidden" name="tab" value="{{ tab }}">
+  {% if tab == 'logo' %}
+    <h2 style="margin-bottom:6px">Website logo</h2><p class="muted">Shown in the header, footer, admin panel and invoices. A transparent PNG works best.</p>
+    <div class="img-up" style="margin:14px 0"><img id="pv" src="{{ img_url(S.logo, 'static/img/logo.png') }}" alt="Current logo" style="width:200px;height:auto;max-height:110px;object-fit:contain;background:#fff;padding:8px">
+      <div><input type="file" name="logo" accept="image/png,image/jpeg,image/webp" data-preview="pv"></div></div>
+    <div class="gap"><button class="btn btn-primary" type="submit">Upload logo</button>
+      <button class="btn btn-ghost" type="submit" name="reset_logo" value="1" data-nofile>Restore default logo</button></div>
+  {% else %}
+    <div class="form-grid">
+    {% for k in fields[tab] %}
+      {% set big = k.startswith(('about_', 'return_', 'privacy_')) %}
+      <label class="field" {% if big %}style="grid-column:1/-1"{% endif %}><span>{{ labels[k] }}</span>
+        {% if big %}<textarea class="tall" name="{{ k }}" maxlength="6000">{{ S[k] }}</textarea>
+          {% if loop.last or loop.index == 1 %}<small>Tip: start a line with “- ” to make a bullet list; leave a blank line between paragraphs.</small>{% endif %}
+        {% elif k in numeric %}<input class="input" type="number" min="0" name="{{ k }}" value="{{ S[k] }}">
+        {% else %}<input class="input" name="{{ k }}" value="{{ S[k] }}" maxlength="300" {% if k in ('whatsapp', 'phone') %}inputmode="tel" placeholder="01XXXXXXXXX"{% endif %}>{% endif %}
+      </label>
+    {% endfor %}
+    </div>
+    <button class="btn btn-primary" type="submit">{{ ic('check', 16) }} Save settings</button>
+  {% endif %}
+</form>
+{% endblock %}

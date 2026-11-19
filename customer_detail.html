@@ -1,0 +1,21 @@
+{% extends 'admin/base.html' %}
+{% from '_icons.html' import ic %}
+{% from 'admin/_m.html' import status_pill with context %}
+{% block title %}{{ c.name }}{% endblock %}
+{% block content %}
+<a class="muted" href="{{ url_for('admin.customers') }}">← All customers</a>
+<div class="grid-2 mt" style="align-items:start">
+  <section class="card">
+    <h2 style="margin-bottom:12px">Order history ({{ rows|length }})</h2>
+    {% if rows %}<div class="table-wrap"><table>
+      <thead><tr><th>Order</th><th>Date</th><th class="right">Total</th><th>Status</th></tr></thead>
+      <tbody>{% for o in rows %}<tr><td><a href="{{ url_for('admin.order_detail', oid=o.id) }}"><b>{{ o.number }}</b></a></td><td class="nowrap">{{ fdate(o.created_at) }}</td><td class="right">{{ money(o.total) }}</td><td>{{ status_pill(o.status) }}</td></tr>{% endfor %}</tbody></table></div>
+    {% else %}<p class="muted">No orders.</p>{% endif %}
+  </section>
+  <section class="card">
+    <h2 style="margin-bottom:12px">{{ c.name }}</h2>
+    <dl class="kv"><dt>Phone</dt><dd><a href="tel:{{ c.phone }}">{{ c.phone }}</a></dd><dt>Address</dt><dd>{{ c.address or '—' }}</dd><dt>Customer since</dt><dd>{{ fdate(c.created_at, False) }}</dd><dt>Total spent</dt><dd><b>{{ money(spent) }}</b></dd></dl>
+    <a class="btn btn-ok mt" href="https://wa.me/88{{ c.phone }}" target="_blank" rel="noopener noreferrer">{{ ic('chat', 16) }} WhatsApp</a>
+  </section>
+</div>
+{% endblock %}

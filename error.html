@@ -1,0 +1,6 @@
+{% extends 'shop/base.html' %}
+{% from '_icons.html' import ic %}
+{% block title %}{{ code }} – {{ S.site_name }}{% endblock %}
+{% block content %}
+<div class="wrap"><div class="empty">{{ ic('alert', 48) }}<h2>{{ code }}</h2><p>{{ msg }}</p><a class="btn btn-primary" href="{{ url_for('home') }}">{{ L('হোমে ফিরে যান', 'Back to home') }}</a></div></div>
+{% endblock %}

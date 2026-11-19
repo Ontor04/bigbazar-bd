@@ -1,0 +1,31 @@
+{% from '_icons.html' import ic %}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Invoice {{ o.number }}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body>
+<div class="no-print gap" style="max-width:780px;margin:16px auto 0;padding:0 14px">
+  <button class="btn btn-primary" type="button" data-print>{{ ic('printer', 16) }} Print</button>
+  <a class="btn btn-ghost" href="{{ url_for('admin.order_detail', oid=o.id) }}">← Back to order</a>
+</div>
+<div class="invoice">
+  <div class="invoice-head">
+    <div><img src="{{ img_url(S.logo, 'static/img/logo.png') }}" alt="{{ S.site_name }}"><p class="small muted" style="margin:8px 0 0">{{ S.address_en }}<br>{{ S.phone }} · {{ S.email }}</p></div>
+    <div class="right"><h1>INVOICE</h1><p style="margin:0"><b>{{ o.number }}</b><br>{{ fdate(o.created_at) }}</p></div>
+  </div>
+  <p><b>Bill to:</b><br>{{ o.name }}<br>{{ o.phone }}<br>{{ o.address }}</p>
+  <table>
+    <thead><tr><th>Item</th><th class="right">Price</th><th class="right">Qty</th><th class="right">Total</th></tr></thead>
+    <tbody>{% for i in items %}<tr><td>{{ i.name }}</td><td class="right">{{ money(i.price) }}</td><td class="right">{{ i.qty }}</td><td class="right">{{ money(i.price * i.qty) }}</td></tr>{% endfor %}</tbody>
+  </table>
+  <div class="totals"><div><span>Subtotal</span><span>{{ money(o.subtotal) }}</span></div><div><span>Delivery</span><span>{{ money(o.delivery) }}</span></div><div class="grand"><span>Amount due (COD)</span><span>{{ money(o.total) }}</span></div></div>
+  <p class="small muted" style="margin-top:28px">Payment: Cash on Delivery. Returns/exchanges within 3 days subject to our return policy. Thank you for shopping with {{ S.site_name }}!</p>
+</div>
+<script src="{{ url_for('static', filename='js/admin.js') }}" defer></script>
+</body>
+</html>
